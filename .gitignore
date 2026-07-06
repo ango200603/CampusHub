@@ -1,0 +1,9 @@
+target/
+.idea/
+.DS_Store
+*.log
+node_modules/
+.next/
+dist/
+.env
+data/

@@ -1,0 +1,83 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: campus-gateway
+  config:
+    import: optional:nacos:${spring.application.name}.yaml
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+      config:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        file-extension: yaml
+        import-check:
+          enabled: false
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:localhost:8858}
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: campus-auth-service
+          uri: lb://campus-auth-service
+          predicates:
+            - Path=/auth/**
+        - id: campus-user-service
+          uri: lb://campus-user-service
+          predicates:
+            - Path=/users/**
+        - id: campus-file-service
+          uri: lb://campus-file-service
+          predicates:
+            - Path=/files/**
+        - id: campus-ai-service
+          uri: lb://campus-ai-service
+          predicates:
+            - Path=/ai/**
+        - id: campus-trade-service
+          uri: lb://campus-trade-service
+          predicates:
+            - Path=/trades/**
+        - id: campus-order-service
+          uri: lb://campus-order-service
+          predicates:
+            - Path=/orders/**
+        - id: campus-pay-service
+          uri: lb://campus-pay-service
+          predicates:
+            - Path=/pay/**
+        - id: campus-notice-service
+          uri: lb://campus-notice-service
+          predicates:
+            - Path=/notices/**
+        - id: campus-admin-service
+          uri: lb://campus-admin-service
+          predicates:
+            - Path=/admin/**
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+campus:
+  jwt:
+    secret: ${JWT_SECRET:CampusHubSecretKeyForJwtHS256NeedsAtLeast32Bytes2026}
+    expire-seconds: 604800
+  gateway:
+    rate-limit-per-minute: 120
+    whitelist:
+      - /auth/sms/send
+      - /auth/login/sms
+      - /actuator/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

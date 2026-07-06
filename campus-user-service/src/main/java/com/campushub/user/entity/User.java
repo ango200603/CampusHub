@@ -1,0 +1,21 @@
+package com.campushub.user.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import java.time.LocalDateTime;
+import lombok.Data;
+
+@Data
+@TableName("users")
+public class User {
+    @TableId(type = IdType.ASSIGN_ID)
+    private Long id;
+    private String phone;
+    private String nickname;
+    private String avatarUrl;
+    private Integer points;
+    private Integer status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+}
