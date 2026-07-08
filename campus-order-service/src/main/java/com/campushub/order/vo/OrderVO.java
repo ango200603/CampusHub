@@ -3,11 +3,18 @@ package com.campushub.order.vo;
 import com.campushub.order.entity.OrderRecord;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * Order response object.
+ */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderVO {
     private Long id;
     private String orderNo;
@@ -19,6 +26,12 @@ public class OrderVO {
     private String status;
     private LocalDateTime createdAt;
 
+    /**
+     * Converts an order entity to VO.
+     *
+     * @param order order entity
+     * @return order VO
+     */
     public static OrderVO from(OrderRecord order) {
         return OrderVO.builder()
                 .id(order.getId())

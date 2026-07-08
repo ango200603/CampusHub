@@ -8,11 +8,17 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * File service configuration.
+ */
 @Configuration
 @RequiredArgsConstructor
 public class MinioConfig {
     private final MinioProperties properties;
 
+    /**
+     * Declares the minio client bean.
+     */
     @Bean
     public MinioClient minioClient() {
         return MinioClient.builder()
@@ -21,6 +27,9 @@ public class MinioConfig {
                 .build();
     }
 
+    /**
+     * Declares the bucket initializer bean.
+     */
     @Bean
     public ApplicationRunner bucketInitializer(MinioClient minioClient) {
         return args -> {

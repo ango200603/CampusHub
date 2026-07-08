@@ -2,11 +2,18 @@ package com.campushub.user.vo;
 
 import com.campushub.user.entity.User;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * User response object.
+ */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserVO {
     private Long id;
     private String phone;
@@ -16,6 +23,12 @@ public class UserVO {
     private Integer status;
     private LocalDateTime createdAt;
 
+    /**
+     * Converts a user entity to VO.
+     *
+     * @param user user entity
+     * @return user VO
+     */
     public static UserVO from(User user) {
         if (user == null) {
             return null;

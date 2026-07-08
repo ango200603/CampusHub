@@ -1,6 +1,7 @@
 package com.campushub.user.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.campushub.common.constant.RedisKeyConstant;
 import com.campushub.common.exception.BusinessException;
 import com.campushub.common.exception.ErrorCode;
 import com.campushub.common.redis.RedisLock;
@@ -19,6 +20,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+/**
+ * User service implementation.
+ */
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -26,6 +30,9 @@ public class UserServiceImpl implements UserService {
     private final RedisLock redisLock;
     private final StringRedisTemplate redisTemplate;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public UserVO getOrCreate(LoginUserRequest request) {
         User existing = findByPhone(request.getPhone());
@@ -48,6 +55,9 @@ public class UserServiceImpl implements UserService {
         return UserVO.from(user);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public UserVO getById(Long id) {
         User user = userMapper.selectById(id);
@@ -57,6 +67,9 @@ public class UserServiceImpl implements UserService {
         return UserVO.from(user);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public UserVO updateMe(Long userId, UpdateProfileRequest request) {
         User user = userMapper.selectById(userId);
@@ -74,9 +87,12 @@ public class UserServiceImpl implements UserService {
         return UserVO.from(user);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Integer getPoints(Long userId) {
-        String key = "user:points:" + userId;
+        String key = RedisKeyConstant.userPoints(userId);
         String cached = redisTemplate.opsForValue().get(key);
         if (cached != null) {
             return Integer.valueOf(cached);
@@ -89,9 +105,12 @@ public class UserServiceImpl implements UserService {
         return user.getPoints();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void increasePoints(PointsChangeRequest request) {
-        redisLock.execute("lock:user:points:" + request.getUserId(), Duration.ofSeconds(5), () -> {
+        redisLock.execute(RedisKeyConstant.lockUserPoints(request.getUserId()), Duration.ofSeconds(5), () -> {
             int updated = userMapper.update(null, Wrappers.<User>lambdaUpdate()
                     .eq(User::getId, request.getUserId())
                     .setSql("points = points + " + request.getAmount())
@@ -99,14 +118,17 @@ public class UserServiceImpl implements UserService {
             if (updated == 0) {
                 throw new BusinessException(ErrorCode.NOT_FOUND, "用户不存在");
             }
-            redisTemplate.delete("user:points:" + request.getUserId());
+            redisTemplate.delete(RedisKeyConstant.userPoints(request.getUserId()));
             return true;
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void decreasePoints(PointsChangeRequest request) {
-        redisLock.execute("lock:user:points:" + request.getUserId(), Duration.ofSeconds(5), () -> {
+        redisLock.execute(RedisKeyConstant.lockUserPoints(request.getUserId()), Duration.ofSeconds(5), () -> {
             int updated = userMapper.update(null, Wrappers.<User>lambdaUpdate()
                     .eq(User::getId, request.getUserId())
                     .ge(User::getPoints, request.getAmount())
@@ -115,7 +137,7 @@ public class UserServiceImpl implements UserService {
             if (updated == 0) {
                 throw new BusinessException(ErrorCode.CONFLICT, "积分不足或用户不存在");
             }
-            redisTemplate.delete("user:points:" + request.getUserId());
+            redisTemplate.delete(RedisKeyConstant.userPoints(request.getUserId()));
             return true;
         });
     }

@@ -3,11 +3,18 @@ package com.campushub.trade.vo;
 import com.campushub.trade.entity.TradeItem;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * Trade item response object.
+ */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TradeItemVO {
     private Long id;
     private Long sellerId;
@@ -19,6 +26,12 @@ public class TradeItemVO {
     private String status;
     private LocalDateTime createdAt;
 
+    /**
+     * Converts a trade item entity to VO.
+     *
+     * @param item trade item entity
+     * @return trade item VO
+     */
     public static TradeItemVO from(TradeItem item) {
         return TradeItemVO.builder()
                 .id(item.getId())

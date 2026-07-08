@@ -1,5 +1,6 @@
 package com.campushub.file.controller;
 
+import com.campushub.common.constant.CommonConstant;
 import com.campushub.common.api.Result;
 import com.campushub.file.service.FileRecordService;
 import com.campushub.file.vo.FileRecordVO;
@@ -15,29 +16,44 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * File API controller.
+ */
 @RestController
 @RequestMapping("/files")
 @RequiredArgsConstructor
 public class FileController {
     private final FileRecordService fileRecordService;
 
+    /**
+     * Uploads a file.
+     */
     @PostMapping("/upload")
-    public Result<FileRecordVO> upload(@RequestHeader("X-User-Id") Long userId, @RequestParam("file") MultipartFile file) {
+    public Result<FileRecordVO> upload(@RequestHeader(CommonConstant.HEADER_USER_ID) Long userId, @RequestParam("file") MultipartFile file) {
         return Result.ok(fileRecordService.upload(userId, file));
     }
 
+    /**
+     * Returns a record by id.
+     */
     @GetMapping("/{id}")
-    public Result<FileRecordVO> get(@RequestHeader("X-User-Id") Long userId, @PathVariable Long id) {
+    public Result<FileRecordVO> get(@RequestHeader(CommonConstant.HEADER_USER_ID) Long userId, @PathVariable Long id) {
         return Result.ok(fileRecordService.get(userId, id));
     }
 
+    /**
+     * Returns records owned by the current user.
+     */
     @GetMapping("/my")
-    public Result<List<FileRecordVO>> my(@RequestHeader("X-User-Id") Long userId) {
+    public Result<List<FileRecordVO>> my(@RequestHeader(CommonConstant.HEADER_USER_ID) Long userId) {
         return Result.ok(fileRecordService.my(userId));
     }
 
+    /**
+     * Deletes an existing record.
+     */
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@RequestHeader("X-User-Id") Long userId, @PathVariable Long id) {
+    public Result<Void> delete(@RequestHeader(CommonConstant.HEADER_USER_ID) Long userId, @PathVariable Long id) {
         fileRecordService.delete(userId, id);
         return Result.ok();
     }

@@ -1,5 +1,8 @@
 package com.campushub.notice.enums;
 
+/**
+ * read status enum.
+ */
 public enum ReadStatus {
     UNREAD(0),
     READ(1);
@@ -10,6 +13,9 @@ public enum ReadStatus {
         this.code = code;
     }
 
+    /**
+     * Returns the stored code value.
+     */
     public int code() {
         return code;
     }

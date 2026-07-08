@@ -11,6 +11,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
+/**
+ * Redis based lock helper.
+ */
 @Component
 @RequiredArgsConstructor
 public class RedisLock {
@@ -21,6 +24,15 @@ public class RedisLock {
 
     private final StringRedisTemplate redisTemplate;
 
+    /**
+     * Executes a supplier while holding a Redis lock.
+     *
+     * @param key lock key
+     * @param ttl lock TTL
+     * @param supplier protected supplier
+     * @param <T> return type
+     * @return supplier result
+     */
     public <T> T execute(String key, Duration ttl, Supplier<T> supplier) {
         String value = UUID.randomUUID().toString();
         Boolean locked = redisTemplate.opsForValue().setIfAbsent(key, value, ttl);
@@ -34,6 +46,12 @@ public class RedisLock {
         }
     }
 
+    /**
+     * Releases a lock only when the value matches.
+     *
+     * @param key lock key
+     * @param value lock value
+     */
     public void unlock(String key, String value) {
         redisTemplate.execute(new DefaultRedisScript<>(UNLOCK_SCRIPT, Long.class), Collections.singletonList(key), value);
     }

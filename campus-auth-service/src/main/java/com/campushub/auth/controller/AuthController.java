@@ -1,5 +1,6 @@
 package com.campushub.auth.controller;
 
+import com.campushub.common.constant.CommonConstant;
 import com.campushub.auth.dto.SmsLoginRequest;
 import com.campushub.auth.dto.SmsSendRequest;
 import com.campushub.auth.service.AuthService;
@@ -15,31 +16,46 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Auth API controller.
+ */
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
 
+    /**
+     * Sends an SMS verification code.
+     */
     @PostMapping("/sms/send")
     public Result<Void> sendSms(@Valid @RequestBody SmsSendRequest request) {
         authService.sendSms(request);
         return Result.ok();
     }
 
+    /**
+     * Logs in with an SMS verification code.
+     */
     @PostMapping("/login/sms")
     public Result<LoginVO> loginBySms(@Valid @RequestBody SmsLoginRequest request) {
         return Result.ok(authService.loginBySms(request));
     }
 
+    /**
+     * Logs out the current user.
+     */
     @PostMapping("/logout")
-    public Result<Void> logout(@RequestHeader(value = "X-User-Id", required = false) Long userId) {
+    public Result<Void> logout(@RequestHeader(value = CommonConstant.HEADER_USER_ID, required = false) Long userId) {
         authService.logout(userId);
         return Result.ok();
     }
 
+    /**
+     * Returns the current user identity.
+     */
     @GetMapping("/me")
-    public Result<MeVO> me(@RequestHeader("Authorization") String authorization) {
+    public Result<MeVO> me(@RequestHeader(CommonConstant.HEADER_AUTHORIZATION) String authorization) {
         return Result.ok(authService.me(authorization));
     }
 }

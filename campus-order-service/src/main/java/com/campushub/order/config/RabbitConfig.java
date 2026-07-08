@@ -16,23 +16,38 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Order service configuration.
+ */
 @Configuration
 public class RabbitConfig {
+    /**
+     * Declares the order exchange bean.
+     */
     @Bean
     public TopicExchange orderExchange() {
         return new TopicExchange(RabbitKeys.ORDER_EXCHANGE, true, false);
     }
 
+    /**
+     * Declares the notice exchange bean.
+     */
     @Bean
     public TopicExchange noticeExchange() {
         return new TopicExchange(RabbitKeys.NOTICE_EXCHANGE, true, false);
     }
 
+    /**
+     * Declares the dead exchange bean.
+     */
     @Bean
     public TopicExchange deadExchange() {
         return new TopicExchange(RabbitKeys.DEAD_EXCHANGE, true, false);
     }
 
+    /**
+     * Declares the order pay success queue bean.
+     */
     @Bean
     public Queue orderPaySuccessQueue() {
         return QueueBuilder.durable(RabbitKeys.ORDER_PAY_SUCCESS_QUEUE)
@@ -41,6 +56,9 @@ public class RabbitConfig {
                 .build();
     }
 
+    /**
+     * Declares the order timeout queue bean.
+     */
     @Bean
     public Queue orderTimeoutQueue() {
         return QueueBuilder.durable(RabbitKeys.ORDER_TIMEOUT_QUEUE)
@@ -49,6 +67,9 @@ public class RabbitConfig {
                 .build();
     }
 
+    /**
+     * Declares the order timeout delay queue bean.
+     */
     @Bean
     public Queue orderTimeoutDelayQueue() {
         return QueueBuilder.durable(RabbitKeys.ORDER_TIMEOUT_DELAY_QUEUE)
@@ -60,36 +81,57 @@ public class RabbitConfig {
                 .build();
     }
 
+    /**
+     * Declares the dead letter queue bean.
+     */
     @Bean
     public Queue deadLetterQueue() {
         return QueueBuilder.durable(RabbitKeys.DEAD_LETTER_QUEUE).build();
     }
 
+    /**
+     * Declares the pay success binding bean.
+     */
     @Bean
     public Binding paySuccessBinding(Queue orderPaySuccessQueue, TopicExchange orderExchange) {
         return BindingBuilder.bind(orderPaySuccessQueue).to(orderExchange).with(RabbitKeys.ORDER_PAY_SUCCESS_KEY);
     }
 
+    /**
+     * Declares the timeout binding bean.
+     */
     @Bean
     public Binding timeoutBinding(Queue orderTimeoutQueue, TopicExchange orderExchange) {
         return BindingBuilder.bind(orderTimeoutQueue).to(orderExchange).with(RabbitKeys.ORDER_TIMEOUT_KEY);
     }
 
+    /**
+     * Declares the timeout delay binding bean.
+     */
     @Bean
     public Binding timeoutDelayBinding(Queue orderTimeoutDelayQueue, TopicExchange orderExchange) {
         return BindingBuilder.bind(orderTimeoutDelayQueue).to(orderExchange).with(RabbitKeys.ORDER_TIMEOUT_DELAY_KEY);
     }
 
+    /**
+     * Declares the dead binding bean.
+     */
     @Bean
     public Binding deadBinding(Queue deadLetterQueue, TopicExchange deadExchange) {
         return BindingBuilder.bind(deadLetterQueue).to(deadExchange).with(RabbitKeys.DEAD_KEY);
     }
 
+    /**
+     * Declares the message converter bean.
+     */
     @Bean
     public MessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
+    /**
+     * Declares the rabbit template bean.
+     */
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
@@ -97,6 +139,9 @@ public class RabbitConfig {
         return template;
     }
 
+    /**
+     * Declares the rabbit listener container factory bean.
+     */
     @Bean
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(ConnectionFactory connectionFactory,
                                                                              MessageConverter messageConverter) {

@@ -22,6 +22,9 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
+/**
+ * Ai service implementation.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -29,6 +32,9 @@ public class AiTaskServiceImpl implements AiTaskService {
     private final AiTaskMapper aiTaskMapper;
     private final RabbitTemplate rabbitTemplate;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public AiTaskVO create(Long userId, CreateAiTaskRequest request) {
         AiTask task = newTask(userId, request.getFileId(), request.getTaskType());
@@ -42,6 +48,9 @@ public class AiTaskServiceImpl implements AiTaskService {
         return AiTaskVO.from(task);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public AiTaskVO get(Long userId, Long id) {
         AiTask task = aiTaskMapper.selectById(id);
@@ -51,6 +60,9 @@ public class AiTaskServiceImpl implements AiTaskService {
         return AiTaskVO.from(task);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<AiTaskVO> my(Long userId) {
         return aiTaskMapper.selectList(Wrappers.<AiTask>lambdaQuery()
@@ -59,6 +71,9 @@ public class AiTaskServiceImpl implements AiTaskService {
                 .stream().map(AiTaskVO::from).toList();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void consumeParseMessage(Map<String, Object> payload, Message message, Channel channel) throws IOException {
         long tag = message.getMessageProperties().getDeliveryTag();

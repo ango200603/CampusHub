@@ -3,6 +3,7 @@ package com.campushub.notice.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.campushub.common.exception.BusinessException;
 import com.campushub.common.exception.ErrorCode;
+import com.campushub.notice.dto.NoticeCreateDTO;
 import com.campushub.notice.entity.Notice;
 import com.campushub.notice.enums.ReadStatus;
 import com.campushub.notice.mapper.NoticeMapper;
@@ -18,12 +19,39 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.stereotype.Service;
 
+/**
+ * Notice service implementation.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class NoticeServiceImpl implements NoticeService {
     private final NoticeMapper noticeMapper;
 
+    /**
+     * Creates a notice.
+     *
+     * @param request create request
+     * @return created notice
+     */
+    @Override
+    public NoticeVO create(NoticeCreateDTO request) {
+        Notice notice = new Notice();
+        notice.setUserId(request.getUserId());
+        notice.setTitle(request.getTitle());
+        notice.setContent(request.getContent());
+        notice.setReadStatus(ReadStatus.UNREAD.code());
+        notice.setCreatedAt(LocalDateTime.now());
+        noticeMapper.insert(notice);
+        return NoticeVO.from(notice);
+    }
+
+    /**
+     * Lists current user's notices.
+     *
+     * @param userId user id
+     * @return notice list
+     */
     @Override
     public List<NoticeVO> my(Long userId) {
         return noticeMapper.selectList(Wrappers.<Notice>lambdaQuery()
@@ -32,6 +60,12 @@ public class NoticeServiceImpl implements NoticeService {
                 .stream().map(NoticeVO::from).toList();
     }
 
+    /**
+     * Marks a notice as read.
+     *
+     * @param userId user id
+     * @param id notice id
+     */
     @Override
     public void markRead(Long userId, Long id) {
         int updated = noticeMapper.update(null, Wrappers.<Notice>lambdaUpdate()
@@ -43,6 +77,14 @@ public class NoticeServiceImpl implements NoticeService {
         }
     }
 
+    /**
+     * Handles mock SMS messages.
+     *
+     * @param payload message payload
+     * @param message raw AMQP message
+     * @param channel AMQP channel
+     * @throws IOException when ack/nack fails
+     */
     @Override
     public void handleSms(Map<String, Object> payload, Message message, Channel channel) throws IOException {
         long tag = message.getMessageProperties().getDeliveryTag();
@@ -54,6 +96,14 @@ public class NoticeServiceImpl implements NoticeService {
         }
     }
 
+    /**
+     * Handles notice messages.
+     *
+     * @param payload message payload
+     * @param message raw AMQP message
+     * @param channel AMQP channel
+     * @throws IOException when ack/nack fails
+     */
     @Override
     public void handleNotice(Map<String, Object> payload, Message message, Channel channel) throws IOException {
         long tag = message.getMessageProperties().getDeliveryTag();

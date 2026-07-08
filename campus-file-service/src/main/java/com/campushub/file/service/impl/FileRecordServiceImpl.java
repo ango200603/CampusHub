@@ -22,6 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * File service implementation.
+ */
 @Service
 @RequiredArgsConstructor
 public class FileRecordServiceImpl implements FileRecordService {
@@ -30,6 +33,9 @@ public class FileRecordServiceImpl implements FileRecordService {
     private final MinioProperties minioProperties;
     private final RabbitTemplate rabbitTemplate;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public FileRecordVO upload(Long userId, MultipartFile file) {
         if (file.isEmpty()) {
@@ -69,6 +75,9 @@ public class FileRecordServiceImpl implements FileRecordService {
         return FileRecordVO.from(record);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public FileRecordVO get(Long userId, Long id) {
         FileRecord record = fileRecordMapper.selectById(id);
@@ -78,6 +87,9 @@ public class FileRecordServiceImpl implements FileRecordService {
         return FileRecordVO.from(record);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<FileRecordVO> my(Long userId) {
         return fileRecordMapper.selectList(Wrappers.<FileRecord>lambdaQuery()
@@ -86,6 +98,9 @@ public class FileRecordServiceImpl implements FileRecordService {
                 .stream().map(FileRecordVO::from).toList();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void delete(Long userId, Long id) {
         FileRecord record = fileRecordMapper.selectById(id);

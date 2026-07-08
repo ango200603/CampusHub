@@ -19,12 +19,18 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+/**
+ * Pay service implementation.
+ */
 @Service
 @RequiredArgsConstructor
 public class PayServiceImpl implements PayService {
     private final PayRecordMapper payRecordMapper;
     private final RabbitTemplate rabbitTemplate;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public PayRecordVO create(PayCreateRequest request) {
         PayRecord existing = findByOrderNo(request.getOrderNo());
@@ -43,6 +49,9 @@ public class PayServiceImpl implements PayService {
         return PayRecordVO.from(record);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public PayRecordVO mockSuccess(PayMockSuccessRequest request) {
         PayRecord record = null;
@@ -76,6 +85,9 @@ public class PayServiceImpl implements PayService {
         return PayRecordVO.from(record);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public PayRecordVO getByOrderNo(String orderNo) {
         PayRecord record = findByOrderNo(orderNo);

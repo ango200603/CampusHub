@@ -5,9 +5,18 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * Order record entity.
+ */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @TableName("orders")
 public class OrderRecord {
     @TableId(type = IdType.ASSIGN_ID)

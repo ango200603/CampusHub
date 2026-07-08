@@ -10,16 +10,25 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
+/**
+ * Notice message component.
+ */
 @Component
 @RequiredArgsConstructor
 public class NoticeMessageListener {
     private final NoticeService noticeService;
 
+    /**
+     * Consumes an SMS message.
+     */
     @RabbitListener(queues = RabbitKeys.SMS_SEND_QUEUE)
     public void sms(Map<String, Object> payload, Message message, Channel channel) throws IOException {
         noticeService.handleSms(payload, message, channel);
     }
 
+    /**
+     * Consumes a notice message.
+     */
     @RabbitListener(queues = RabbitKeys.NOTICE_SEND_QUEUE)
     public void notice(Map<String, Object> payload, Message message, Channel channel) throws IOException {
         noticeService.handleNotice(payload, message, channel);

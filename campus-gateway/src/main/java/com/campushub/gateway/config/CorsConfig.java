@@ -7,8 +7,16 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
+/**
+ * Gateway CORS configuration.
+ */
 @Configuration
 public class CorsConfig {
+    /**
+     * Creates a permissive CORS filter for local frontend development.
+     *
+     * @return CORS web filter
+     */
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration configuration = new CorsConfiguration();

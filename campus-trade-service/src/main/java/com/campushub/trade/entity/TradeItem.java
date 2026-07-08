@@ -5,9 +5,18 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * Trade item entity.
+ */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @TableName("trade_items")
 public class TradeItem {
     @TableId(type = IdType.ASSIGN_ID)

@@ -2,6 +2,9 @@ package com.campushub.common.exception;
 
 import lombok.Getter;
 
+/**
+ * Business error codes used by existing service code.
+ */
 @Getter
 public enum ErrorCode {
     BAD_REQUEST(400, "请求参数错误"),

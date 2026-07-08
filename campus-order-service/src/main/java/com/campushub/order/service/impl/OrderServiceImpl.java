@@ -2,6 +2,7 @@ package com.campushub.order.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.campushub.common.api.Result;
+import com.campushub.common.constant.RedisKeyConstant;
 import com.campushub.common.exception.BusinessException;
 import com.campushub.common.exception.ErrorCode;
 import com.campushub.common.mq.RabbitKeys;
@@ -27,6 +28,9 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
+/**
+ * Order service implementation.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -36,9 +40,12 @@ public class OrderServiceImpl implements OrderService {
     private final RedisLock redisLock;
     private final RabbitTemplate rabbitTemplate;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public OrderVO create(Long buyerId, CreateOrderRequest request) {
-        return redisLock.execute("lock:trade:item:" + request.getItemId(), Duration.ofSeconds(10), () -> {
+        return redisLock.execute(RedisKeyConstant.lockTradeItem(request.getItemId()), Duration.ofSeconds(10), () -> {
             TradeItemVO item = unwrap(tradeClient.detail(request.getItemId()));
             if (buyerId.equals(item.getSellerId())) {
                 throw new BusinessException(ErrorCode.BAD_REQUEST, "不能购买自己发布的商品");
@@ -73,6 +80,9 @@ public class OrderServiceImpl implements OrderService {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public OrderVO get(Long userId, Long id) {
         OrderRecord order = require(id);
@@ -82,6 +92,9 @@ public class OrderServiceImpl implements OrderService {
         return OrderVO.from(order);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<OrderVO> my(Long userId) {
         return orderMapper.selectList(Wrappers.<OrderRecord>lambdaQuery()
@@ -92,6 +105,9 @@ public class OrderServiceImpl implements OrderService {
                 .stream().map(OrderVO::from).toList();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void cancel(Long userId, Long id) {
         OrderRecord order = require(id);
@@ -109,6 +125,9 @@ public class OrderServiceImpl implements OrderService {
         tradeClient.release(order.getItemId());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void handlePaySuccess(Map<String, Object> payload, Message message, Channel channel) throws IOException {
         long tag = message.getMessageProperties().getDeliveryTag();
@@ -144,6 +163,9 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void handleTimeout(Map<String, Object> payload, Message message, Channel channel) throws IOException {
         long tag = message.getMessageProperties().getDeliveryTag();

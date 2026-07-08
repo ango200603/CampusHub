@@ -9,6 +9,8 @@ import com.campushub.auth.vo.LoginVO;
 import com.campushub.auth.vo.MeVO;
 import com.campushub.auth.vo.UserVO;
 import com.campushub.common.api.Result;
+import com.campushub.common.constant.CommonConstant;
+import com.campushub.common.constant.RedisKeyConstant;
 import com.campushub.common.exception.BusinessException;
 import com.campushub.common.exception.ErrorCode;
 import com.campushub.common.mq.RabbitKeys;
@@ -24,6 +26,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+/**
+ * Auth service implementation.
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -32,15 +37,18 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final UserClient userClient;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void sendSms(SmsSendRequest request) {
-        String limitKey = "sms:limit:" + request.getPhone();
+        String limitKey = RedisKeyConstant.smsLimit(request.getPhone());
         Boolean allowed = redisTemplate.opsForValue().setIfAbsent(limitKey, "1", Duration.ofSeconds(60));
         if (!Boolean.TRUE.equals(allowed)) {
             throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS, "验证码发送太频繁，请 60 秒后再试");
         }
         String code = String.valueOf(ThreadLocalRandom.current().nextInt(100000, 1000000));
-        redisTemplate.opsForValue().set("sms:code:" + request.getPhone(), code, Duration.ofMinutes(5));
+        redisTemplate.opsForValue().set(RedisKeyConstant.smsCode(request.getPhone()), code, Duration.ofMinutes(5));
         rabbitTemplate.convertAndSend(
                 RabbitKeys.SMS_EXCHANGE,
                 RabbitKeys.SMS_SEND_KEY,
@@ -48,9 +56,12 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public LoginVO loginBySms(SmsLoginRequest request) {
-        String key = "sms:code:" + request.getPhone();
+        String key = RedisKeyConstant.smsCode(request.getPhone());
         String cached = redisTemplate.opsForValue().get(key);
         if (!request.getCode().equals(cached)) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "验证码错误或已过期");
@@ -60,30 +71,36 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.INTERNAL_ERROR, "用户服务不可用");
         }
         UserVO user = userResult.getData();
-        String token = jwtService.createToken(user.getId(), user.getPhone(), List.of("USER"));
-        redisTemplate.opsForValue().set("login:token:" + user.getId(), token, Duration.ofDays(7));
+        String token = jwtService.createToken(user.getId(), user.getPhone(), List.of(CommonConstant.ROLE_USER));
+        redisTemplate.opsForValue().set(RedisKeyConstant.loginToken(user.getId()), token, Duration.ofDays(7));
         redisTemplate.delete(key);
         return LoginVO.builder()
                 .token(token)
-                .tokenType("Bearer")
+                .tokenType(CommonConstant.BEARER_TOKEN_TYPE)
                 .expiresIn(604800L)
                 .user(user)
                 .build();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void logout(Long userId) {
         if (userId != null) {
-            redisTemplate.delete("login:token:" + userId);
+            redisTemplate.delete(RedisKeyConstant.loginToken(userId));
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public MeVO me(String authorization) {
-        if (!StringUtils.hasText(authorization) || !authorization.startsWith("Bearer ")) {
+        if (!StringUtils.hasText(authorization) || !authorization.startsWith(CommonConstant.BEARER_PREFIX)) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
-        UserPrincipal principal = jwtService.parse(authorization.substring(7));
+        UserPrincipal principal = jwtService.parse(authorization.substring(CommonConstant.BEARER_PREFIX.length()));
         return MeVO.builder()
                 .userId(principal.getUserId())
                 .phone(principal.getPhone())

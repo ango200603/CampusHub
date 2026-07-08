@@ -2,6 +2,7 @@ package com.campushub.trade.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.campushub.common.constant.RedisKeyConstant;
 import com.campushub.common.exception.BusinessException;
 import com.campushub.common.exception.ErrorCode;
 import com.campushub.trade.dto.CreateTradeItemRequest;
@@ -20,6 +21,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+/**
+ * Trade service implementation.
+ */
 @Service
 @RequiredArgsConstructor
 public class TradeItemServiceImpl implements TradeItemService {
@@ -27,6 +31,9 @@ public class TradeItemServiceImpl implements TradeItemService {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public TradeItemVO create(Long sellerId, CreateTradeItemRequest request) {
         LocalDateTime now = LocalDateTime.now();
@@ -41,10 +48,13 @@ public class TradeItemServiceImpl implements TradeItemService {
         item.setCreatedAt(now);
         item.setUpdatedAt(now);
         tradeItemMapper.insert(item);
-        redisTemplate.delete("trade:hot:list");
+        redisTemplate.delete(RedisKeyConstant.TRADE_HOT_LIST);
         return TradeItemVO.from(item);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<TradeItemVO> list(String category, String keyword) {
         LambdaQueryWrapper<TradeItem> query = Wrappers.<TradeItem>lambdaQuery()
@@ -59,9 +69,12 @@ public class TradeItemServiceImpl implements TradeItemService {
         return tradeItemMapper.selectList(query).stream().map(TradeItemVO::from).toList();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public TradeItemVO detail(Long id) {
-        String key = "trade:item:" + id;
+        String key = RedisKeyConstant.tradeItem(id);
         String cached = redisTemplate.opsForValue().get(key);
         if (cached != null) {
             try {
@@ -79,6 +92,9 @@ public class TradeItemServiceImpl implements TradeItemService {
         return vo;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public TradeItemVO update(Long sellerId, Long id, UpdateTradeItemRequest request) {
         TradeItem item = require(id);
@@ -106,6 +122,9 @@ public class TradeItemServiceImpl implements TradeItemService {
         return TradeItemVO.from(item);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void offShelf(Long sellerId, Long id) {
         TradeItem item = require(id);
@@ -118,6 +137,9 @@ public class TradeItemServiceImpl implements TradeItemService {
         evict(id);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public TradeItemVO lockForOrder(Long itemId) {
         TradeItem item = require(itemId);
@@ -136,6 +158,9 @@ public class TradeItemServiceImpl implements TradeItemService {
         return TradeItemVO.from(require(itemId));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void release(Long itemId) {
         tradeItemMapper.update(null, Wrappers.<TradeItem>lambdaUpdate()
@@ -146,6 +171,9 @@ public class TradeItemServiceImpl implements TradeItemService {
         evict(itemId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void markSold(Long itemId) {
         int updated = tradeItemMapper.update(null, Wrappers.<TradeItem>lambdaUpdate()
@@ -171,7 +199,7 @@ public class TradeItemServiceImpl implements TradeItemService {
     }
 
     private void evict(Long id) {
-        redisTemplate.delete("trade:item:" + id);
-        redisTemplate.delete("trade:hot:list");
+        redisTemplate.delete(RedisKeyConstant.tradeItem(id));
+        redisTemplate.delete(RedisKeyConstant.TRADE_HOT_LIST);
     }
 }
