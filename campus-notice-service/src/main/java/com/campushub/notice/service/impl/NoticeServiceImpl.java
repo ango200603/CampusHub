@@ -3,8 +3,10 @@ package com.campushub.notice.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.campushub.common.exception.BusinessException;
 import com.campushub.common.exception.ErrorCode;
+import com.campushub.notice.convert.NoticeConvert;
 import com.campushub.notice.dto.NoticeCreateDTO;
 import com.campushub.notice.entity.Notice;
+import com.campushub.notice.enums.NoticeStatusEnum;
 import com.campushub.notice.enums.ReadStatus;
 import com.campushub.notice.mapper.NoticeMapper;
 import com.campushub.notice.service.NoticeService;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("unused")
 public class NoticeServiceImpl implements NoticeService {
     private final NoticeMapper noticeMapper;
 
@@ -40,10 +43,10 @@ public class NoticeServiceImpl implements NoticeService {
         notice.setUserId(request.getUserId());
         notice.setTitle(request.getTitle());
         notice.setContent(request.getContent());
-        notice.setReadStatus(ReadStatus.UNREAD.code());
+        notice.setReadStatus(NoticeStatusEnum.UNREAD.code());
         notice.setCreatedAt(LocalDateTime.now());
         noticeMapper.insert(notice);
-        return NoticeVO.from(notice);
+        return NoticeConvert.toVO(notice);
     }
 
     /**
@@ -57,7 +60,7 @@ public class NoticeServiceImpl implements NoticeService {
         return noticeMapper.selectList(Wrappers.<Notice>lambdaQuery()
                         .eq(Notice::getUserId, userId)
                         .orderByDesc(Notice::getCreatedAt))
-                .stream().map(NoticeVO::from).toList();
+                .stream().map(NoticeConvert::toVO).toList();
     }
 
     /**

@@ -4,7 +4,7 @@ import com.campushub.common.constant.CommonConstant;
 import com.campushub.common.api.Result;
 import com.campushub.user.dto.LoginUserRequest;
 import com.campushub.user.dto.PointsChangeRequest;
-import com.campushub.user.dto.UpdateProfileRequest;
+import com.campushub.user.dto.UserProfileDTO;
 import com.campushub.user.service.UserService;
 import com.campushub.user.vo.UserVO;
 import jakarta.validation.Valid;
@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
+@SuppressWarnings("unused")
 public class UserController {
     private final UserService userService;
 
@@ -40,8 +41,8 @@ public class UserController {
      */
     @PutMapping("/me")
     public Result<UserVO> updateMe(@RequestHeader(CommonConstant.HEADER_USER_ID) Long userId,
-                                   @Valid @RequestBody UpdateProfileRequest request) {
-        return Result.ok(userService.updateMe(userId, request));
+                                   @Valid @RequestBody UserProfileDTO request) {
+        return Result.ok(userService.updateMe(userId, request.toUpdateProfileRequest()));
     }
 
     /**

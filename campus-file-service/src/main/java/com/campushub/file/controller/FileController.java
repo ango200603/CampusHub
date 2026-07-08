@@ -2,8 +2,10 @@ package com.campushub.file.controller;
 
 import com.campushub.common.constant.CommonConstant;
 import com.campushub.common.api.Result;
-import com.campushub.file.service.FileRecordService;
+import com.campushub.file.convert.FileConvert;
+import com.campushub.file.service.FileService;
 import com.campushub.file.vo.FileRecordVO;
+import com.campushub.file.vo.FileUploadVO;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,15 +24,16 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/files")
 @RequiredArgsConstructor
+@SuppressWarnings("unused")
 public class FileController {
-    private final FileRecordService fileRecordService;
+    private final FileService fileService;
 
     /**
      * Uploads a file.
      */
     @PostMapping("/upload")
-    public Result<FileRecordVO> upload(@RequestHeader(CommonConstant.HEADER_USER_ID) Long userId, @RequestParam("file") MultipartFile file) {
-        return Result.ok(fileRecordService.upload(userId, file));
+    public Result<FileUploadVO> upload(@RequestHeader(CommonConstant.HEADER_USER_ID) Long userId, @RequestParam("file") MultipartFile file) {
+        return Result.ok(FileConvert.toUploadVO(fileService.upload(userId, file)));
     }
 
     /**
@@ -38,7 +41,7 @@ public class FileController {
      */
     @GetMapping("/{id}")
     public Result<FileRecordVO> get(@RequestHeader(CommonConstant.HEADER_USER_ID) Long userId, @PathVariable Long id) {
-        return Result.ok(fileRecordService.get(userId, id));
+        return Result.ok(fileService.get(userId, id));
     }
 
     /**
@@ -46,7 +49,7 @@ public class FileController {
      */
     @GetMapping("/my")
     public Result<List<FileRecordVO>> my(@RequestHeader(CommonConstant.HEADER_USER_ID) Long userId) {
-        return Result.ok(fileRecordService.my(userId));
+        return Result.ok(fileService.my(userId));
     }
 
     /**
@@ -54,7 +57,7 @@ public class FileController {
      */
     @DeleteMapping("/{id}")
     public Result<Void> delete(@RequestHeader(CommonConstant.HEADER_USER_ID) Long userId, @PathVariable Long id) {
-        fileRecordService.delete(userId, id);
+        fileService.delete(userId, id);
         return Result.ok();
     }
 }

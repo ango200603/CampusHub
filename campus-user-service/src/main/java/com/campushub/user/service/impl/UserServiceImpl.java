@@ -9,6 +9,7 @@ import com.campushub.user.dto.LoginUserRequest;
 import com.campushub.user.dto.PointsChangeRequest;
 import com.campushub.user.dto.UpdateProfileRequest;
 import com.campushub.user.entity.User;
+import com.campushub.user.enums.UserStatusEnum;
 import com.campushub.user.mapper.UserMapper;
 import com.campushub.user.service.UserService;
 import com.campushub.user.vo.UserVO;
@@ -25,6 +26,7 @@ import org.springframework.util.StringUtils;
  */
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("unused")
 public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final RedisLock redisLock;
@@ -44,7 +46,7 @@ public class UserServiceImpl implements UserService {
         user.setNickname("校园用户" + request.getPhone().substring(7));
         user.setAvatarUrl("");
         user.setPoints(100);
-        user.setStatus(1);
+        user.setStatus(UserStatusEnum.ENABLED.code());
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
         try {

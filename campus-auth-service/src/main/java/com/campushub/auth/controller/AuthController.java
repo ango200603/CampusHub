@@ -1,7 +1,7 @@
 package com.campushub.auth.controller;
 
 import com.campushub.common.constant.CommonConstant;
-import com.campushub.auth.dto.SmsLoginRequest;
+import com.campushub.auth.dto.LoginDTO;
 import com.campushub.auth.dto.SmsSendRequest;
 import com.campushub.auth.service.AuthService;
 import com.campushub.auth.vo.LoginVO;
@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@SuppressWarnings("unused")
 public class AuthController {
     private final AuthService authService;
 
@@ -38,8 +39,8 @@ public class AuthController {
      * Logs in with an SMS verification code.
      */
     @PostMapping("/login/sms")
-    public Result<LoginVO> loginBySms(@Valid @RequestBody SmsLoginRequest request) {
-        return Result.ok(authService.loginBySms(request));
+    public Result<LoginVO> loginBySms(@Valid @RequestBody LoginDTO request) {
+        return Result.ok(authService.loginBySms(request.toSmsLoginRequest()));
     }
 
     /**

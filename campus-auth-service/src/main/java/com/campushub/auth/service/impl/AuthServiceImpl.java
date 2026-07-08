@@ -14,7 +14,7 @@ import com.campushub.common.constant.RedisKeyConstant;
 import com.campushub.common.exception.BusinessException;
 import com.campushub.common.exception.ErrorCode;
 import com.campushub.common.mq.RabbitKeys;
-import com.campushub.common.security.JwtService;
+import com.campushub.common.security.JwtUtil;
 import com.campushub.common.security.UserPrincipal;
 import java.time.Duration;
 import java.util.List;
@@ -31,10 +31,11 @@ import org.springframework.util.StringUtils;
  */
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("unused")
 public class AuthServiceImpl implements AuthService {
     private final StringRedisTemplate redisTemplate;
     private final RabbitTemplate rabbitTemplate;
-    private final JwtService jwtService;
+    private final JwtUtil jwtUtil;
     private final UserClient userClient;
 
     /**
@@ -71,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.INTERNAL_ERROR, "用户服务不可用");
         }
         UserVO user = userResult.getData();
-        String token = jwtService.createToken(user.getId(), user.getPhone(), List.of(CommonConstant.ROLE_USER));
+        String token = jwtUtil.createToken(user.getId(), user.getPhone(), List.of(CommonConstant.ROLE_USER));
         redisTemplate.opsForValue().set(RedisKeyConstant.loginToken(user.getId()), token, Duration.ofDays(7));
         redisTemplate.delete(key);
         return LoginVO.builder()
@@ -100,7 +101,7 @@ public class AuthServiceImpl implements AuthService {
         if (!StringUtils.hasText(authorization) || !authorization.startsWith(CommonConstant.BEARER_PREFIX)) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
-        UserPrincipal principal = jwtService.parse(authorization.substring(CommonConstant.BEARER_PREFIX.length()));
+        UserPrincipal principal = jwtUtil.parseToken(authorization.substring(CommonConstant.BEARER_PREFIX.length()));
         return MeVO.builder()
                 .userId(principal.getUserId())
                 .phone(principal.getPhone())

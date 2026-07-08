@@ -10,8 +10,10 @@ import com.campushub.common.redis.RedisLock;
 import com.campushub.common.util.NoGenerator;
 import com.campushub.order.client.TradeClient;
 import com.campushub.order.dto.CreateOrderRequest;
+import com.campushub.order.dto.OrderQueryDTO;
 import com.campushub.order.entity.OrderRecord;
 import com.campushub.order.enums.OrderStatus;
+import com.campushub.order.enums.OrderStatusEnum;
 import com.campushub.order.mapper.OrderRecordMapper;
 import com.campushub.order.service.OrderService;
 import com.campushub.order.vo.OrderVO;
@@ -27,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
  * Order service implementation.
@@ -34,6 +37,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("unused")
 public class OrderServiceImpl implements OrderService {
     private final OrderRecordMapper orderMapper;
     private final TradeClient tradeClient;
@@ -62,7 +66,7 @@ public class OrderServiceImpl implements OrderService {
             order.setItemId(item.getId());
             order.setAmount(item.getPrice());
             order.setOrderType(request.getOrderType() == null ? "TRADE_ITEM" : request.getOrderType());
-            order.setStatus(OrderStatus.UNPAID.name());
+            order.setStatus(OrderStatusEnum.UNPAID.name());
             order.setCreatedAt(now);
             order.setUpdatedAt(now);
             try {
@@ -97,10 +101,22 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public List<OrderVO> my(Long userId) {
+        return query(OrderQueryDTO.builder().userId(userId).build());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<OrderVO> query(OrderQueryDTO query) {
+        OrderQueryDTO safeQuery = query == null ? OrderQueryDTO.builder().build() : query;
         return orderMapper.selectList(Wrappers.<OrderRecord>lambdaQuery()
-                        .eq(OrderRecord::getBuyerId, userId)
-                        .or()
-                        .eq(OrderRecord::getSellerId, userId)
+                        .and(safeQuery.getUserId() != null, wrapper -> wrapper
+                                .eq(OrderRecord::getBuyerId, safeQuery.getUserId())
+                                .or()
+                                .eq(OrderRecord::getSellerId, safeQuery.getUserId()))
+                        .eq(StringUtils.hasText(safeQuery.getStatus()), OrderRecord::getStatus, safeQuery.getStatus())
+                        .eq(StringUtils.hasText(safeQuery.getOrderNo()), OrderRecord::getOrderNo, safeQuery.getOrderNo())
                         .orderByDesc(OrderRecord::getCreatedAt))
                 .stream().map(OrderVO::from).toList();
     }

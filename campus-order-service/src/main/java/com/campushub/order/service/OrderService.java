@@ -1,6 +1,7 @@
 package com.campushub.order.service;
 
 import com.campushub.order.dto.CreateOrderRequest;
+import com.campushub.order.dto.OrderQueryDTO;
 import com.campushub.order.vo.OrderVO;
 import com.rabbitmq.client.Channel;
 import java.io.IOException;
@@ -26,6 +27,14 @@ public interface OrderService {
      * Returns records owned by the current user.
      */
     List<OrderVO> my(Long userId);
+
+    /**
+     * Queries records by request parameters.
+     *
+     * @param query query parameters
+     * @return matched records
+     */
+    List<OrderVO> query(OrderQueryDTO query);
 
     /**
      * Cancels a pending record.

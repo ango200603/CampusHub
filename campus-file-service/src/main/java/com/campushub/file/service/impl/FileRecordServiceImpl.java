@@ -3,21 +3,19 @@ package com.campushub.file.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.campushub.common.exception.BusinessException;
 import com.campushub.common.exception.ErrorCode;
-import com.campushub.common.mq.RabbitKeys;
-import com.campushub.file.config.MinioProperties;
 import com.campushub.file.entity.FileRecord;
 import com.campushub.file.enums.FileStatus;
+import com.campushub.file.enums.FileStatusEnum;
+import com.campushub.file.enums.FileTypeEnum;
 import com.campushub.file.mapper.FileRecordMapper;
+import com.campushub.file.mq.FileParseProducer;
 import com.campushub.file.service.FileRecordService;
+import com.campushub.file.service.MinioService;
 import com.campushub.file.vo.FileRecordVO;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,11 +25,11 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("unused")
 public class FileRecordServiceImpl implements FileRecordService {
     private final FileRecordMapper fileRecordMapper;
-    private final MinioClient minioClient;
-    private final MinioProperties minioProperties;
-    private final RabbitTemplate rabbitTemplate;
+    private final MinioService minioService;
+    private final FileParseProducer fileParseProducer;
 
     /**
      * {@inheritDoc}
@@ -43,35 +41,21 @@ public class FileRecordServiceImpl implements FileRecordService {
         }
         String originalName = StringUtils.hasText(file.getOriginalFilename()) ? file.getOriginalFilename() : "unknown";
         String objectKey = userId + "/" + UUID.randomUUID() + "-" + originalName.replaceAll("[\\s/]+", "_");
-        try {
-            minioClient.putObject(PutObjectArgs.builder()
-                    .bucket(minioProperties.getBucket())
-                    .object(objectKey)
-                    .stream(file.getInputStream(), file.getSize(), -1)
-                    .contentType(file.getContentType())
-                    .build());
-        } catch (Exception ex) {
-            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "文件上传失败：" + ex.getMessage());
-        }
+        FileTypeEnum coarseType = resolveFileType(file.getContentType(), originalName);
+        String fileUrl = minioService.upload(objectKey, file);
         LocalDateTime now = LocalDateTime.now();
         FileRecord record = new FileRecord();
         record.setUserId(userId);
         record.setOriginalName(originalName);
         record.setObjectKey(objectKey);
-        record.setFileUrl(minioProperties.getEndpoint() + "/" + minioProperties.getBucket() + "/" + objectKey);
-        record.setFileType(file.getContentType());
+        record.setFileUrl(fileUrl);
+        record.setFileType(StringUtils.hasText(file.getContentType()) ? file.getContentType() : coarseType.name());
         record.setFileSize(file.getSize());
-        record.setStatus(FileStatus.UPLOADED.name());
+        record.setStatus(FileStatusEnum.UPLOADED.name());
         record.setCreatedAt(now);
         record.setUpdatedAt(now);
         fileRecordMapper.insert(record);
-        rabbitTemplate.convertAndSend(RabbitKeys.AI_EXCHANGE, RabbitKeys.AI_PARSE_KEY, Map.of(
-                "userId", userId,
-                "fileId", record.getId(),
-                "objectKey", objectKey,
-                "originalName", originalName,
-                "taskType", "OCR_SUMMARY"
-        ));
+        fileParseProducer.send(userId, record.getId(), objectKey, originalName, coarseType.name(), "OCR_SUMMARY");
         return FileRecordVO.from(record);
     }
 
@@ -110,5 +94,17 @@ public class FileRecordServiceImpl implements FileRecordService {
         record.setStatus(FileStatus.DELETED.name());
         record.setUpdatedAt(LocalDateTime.now());
         fileRecordMapper.updateById(record);
+    }
+
+    private FileTypeEnum resolveFileType(String contentType, String originalName) {
+        String value = (contentType == null ? "" : contentType) + " " + originalName;
+        String lower = value.toLowerCase();
+        if (lower.contains("image/") || lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
+            return FileTypeEnum.IMAGE;
+        }
+        if (lower.contains("pdf") || lower.endsWith(".pdf")) {
+            return FileTypeEnum.PDF;
+        }
+        return FileTypeEnum.OTHER;
     }
 }
