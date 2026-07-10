@@ -25,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class FileRecordServiceImpl implements FileRecordService {
     private final FileRecordMapper fileRecordMapper;
     private final MinioService minioService;

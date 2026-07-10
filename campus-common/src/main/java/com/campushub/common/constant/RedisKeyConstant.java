@@ -89,12 +89,11 @@ public final class RedisKeyConstant {
     }
 
     /**
-     * Builds an order lock key.
+     * Builds an order lock key reserved for order-level idempotency operations.
      *
      * @param orderNo order number
      * @return Redis key
      */
-    @SuppressWarnings("unused")
     public static String lockOrder(String orderNo) {
         return LOCK_ORDER_PREFIX + orderNo;
     }

@@ -20,7 +20,9 @@ public final class MqConstant {
 
     public static final String SMS_SEND_KEY = "sms.send";
     public static final String AI_PARSE_KEY = "file.parse";
-    @SuppressWarnings("unused")
+    /**
+     * Legacy routing key kept for compatibility with older local message fixtures.
+     */
     public static final String LEGACY_AI_PARSE_KEY = "ai.parse";
     public static final String ORDER_TIMEOUT_KEY = "order.timeout";
     public static final String ORDER_TIMEOUT_DELAY_KEY = "order.timeout.delay";

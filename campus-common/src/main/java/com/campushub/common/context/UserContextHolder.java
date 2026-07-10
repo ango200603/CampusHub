@@ -3,7 +3,6 @@ package com.campushub.common.context;
 /**
  * Thread-local current user holder.
  */
-@SuppressWarnings("unused")
 public final class UserContextHolder {
     private static final ThreadLocal<UserContext> HOLDER = new ThreadLocal<>();
 

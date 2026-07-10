@@ -26,7 +26,6 @@ import org.springframework.util.StringUtils;
  */
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final RedisLock redisLock;

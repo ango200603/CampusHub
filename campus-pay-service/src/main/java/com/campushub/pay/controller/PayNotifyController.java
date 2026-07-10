@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/pay/notify")
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class PayNotifyController {
     private final PayService payService;
 

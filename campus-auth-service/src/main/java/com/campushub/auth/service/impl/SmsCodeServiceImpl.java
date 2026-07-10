@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class SmsCodeServiceImpl implements SmsCodeService {
     private final StringRedisTemplate redisTemplate;
     private final RabbitTemplate rabbitTemplate;

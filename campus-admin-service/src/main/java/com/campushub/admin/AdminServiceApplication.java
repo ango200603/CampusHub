@@ -13,7 +13,6 @@ import org.mybatis.spring.annotation.MapperScan;
 @EnableFeignClients(basePackages = "com.campushub.admin.client")
 @MapperScan("com.campushub.admin.mapper")
 @SpringBootApplication(scanBasePackages = "com.campushub")
-@SuppressWarnings("unused")
 public class AdminServiceApplication {
     /**
      * Starts the Spring Boot application.

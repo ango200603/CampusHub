@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/ai/mock")
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class AiController {
     private final OcrService ocrService;
     private final AiParseService aiParseService;

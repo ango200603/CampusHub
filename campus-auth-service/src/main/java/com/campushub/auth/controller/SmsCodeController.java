@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth/sms-code")
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class SmsCodeController {
     private final SmsCodeService smsCodeService;
 

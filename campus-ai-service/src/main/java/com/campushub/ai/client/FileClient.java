@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
  * Feign client for file-service.
  */
 @FeignClient(name = "campus-file-service", path = "/files")
-@SuppressWarnings("unused")
 public interface FileClient {
     /**
      * Gets a file record through file-service.

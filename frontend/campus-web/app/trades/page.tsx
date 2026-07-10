@@ -5,7 +5,7 @@ import { apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-type Item = { id: number; title: string; price: number; category: string; status: string; coverUrl?: string };
+type Item = { id: string; title: string; price: number; category: string; status: string; coverUrl?: string };
 
 export default function TradesPage() {
   const [items, setItems] = useState<Item[]>([]);

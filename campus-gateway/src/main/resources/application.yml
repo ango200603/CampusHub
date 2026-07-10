@@ -19,47 +19,49 @@ spring:
       transport:
         dashboard: ${SENTINEL_DASHBOARD:localhost:8858}
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-      routes:
-        - id: campus-auth-service
-          uri: lb://campus-auth-service
-          predicates:
-            - Path=/auth/**
-        - id: campus-user-service
-          uri: lb://campus-user-service
-          predicates:
-            - Path=/users/**
-        - id: campus-file-service
-          uri: lb://campus-file-service
-          predicates:
-            - Path=/files/**
-        - id: campus-ai-service
-          uri: lb://campus-ai-service
-          predicates:
-            - Path=/ai/**
-        - id: campus-trade-service
-          uri: lb://campus-trade-service
-          predicates:
-            - Path=/trades/**
-        - id: campus-order-service
-          uri: lb://campus-order-service
-          predicates:
-            - Path=/orders/**
-        - id: campus-pay-service
-          uri: lb://campus-pay-service
-          predicates:
-            - Path=/pay/**
-        - id: campus-notice-service
-          uri: lb://campus-notice-service
-          predicates:
-            - Path=/notices/**
-        - id: campus-admin-service
-          uri: lb://campus-admin-service
-          predicates:
-            - Path=/admin/**
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+          routes:
+            - id: campus-auth-service
+              uri: lb://campus-auth-service
+              predicates:
+                - Path=/auth/**
+            - id: campus-user-service
+              uri: lb://campus-user-service
+              predicates:
+                - Path=/users/**
+            - id: campus-file-service
+              uri: lb://campus-file-service
+              predicates:
+                - Path=/files/**
+            - id: campus-ai-service
+              uri: lb://campus-ai-service
+              predicates:
+                - Path=/ai/**
+            - id: campus-trade-service
+              uri: lb://campus-trade-service
+              predicates:
+                - Path=/trades/**
+            - id: campus-order-service
+              uri: lb://campus-order-service
+              predicates:
+                - Path=/orders/**
+            - id: campus-pay-service
+              uri: lb://campus-pay-service
+              predicates:
+                - Path=/pay/**
+            - id: campus-notice-service
+              uri: lb://campus-notice-service
+              predicates:
+                - Path=/notices/**
+            - id: campus-admin-service
+              uri: lb://campus-admin-service
+              predicates:
+                - Path=/admin/**
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -68,7 +70,7 @@ spring:
 campus:
   jwt:
     secret: ${JWT_SECRET:CampusHubSecretKeyForJwtHS256NeedsAtLeast32Bytes2026}
-    expire-seconds: 604800
+    expire-seconds: ${JWT_EXPIRE_SECONDS:604800}
   gateway:
     rate-limit-per-minute: 120
     whitelist:

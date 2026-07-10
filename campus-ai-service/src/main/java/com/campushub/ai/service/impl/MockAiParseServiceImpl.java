@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class MockAiParseServiceImpl implements AiParseService {
     /**
      * Parses OCR text into a mock summary result.

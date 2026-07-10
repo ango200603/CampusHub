@@ -8,6 +8,5 @@ import org.apache.ibatis.annotations.Mapper;
  * Mapper for orders.
  */
 @Mapper
-@SuppressWarnings("unused")
 public interface OrderMapper extends BaseMapper<Order> {
 }

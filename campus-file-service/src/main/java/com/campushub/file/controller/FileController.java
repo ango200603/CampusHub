@@ -24,7 +24,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/files")
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class FileController {
     private final FileService fileService;
 

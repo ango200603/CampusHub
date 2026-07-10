@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class GoodsServiceImpl implements GoodsService {
     private final TradeItemService tradeItemService;
 

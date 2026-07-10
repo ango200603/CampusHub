@@ -6,18 +6,30 @@ export type ApiResult<T> = {
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8080";
+export const AUTH_TOKEN_KEY = "campus_token";
+export const AUTH_CHANGE_EVENT = "campus-auth-change";
 
 export function getToken() {
   if (typeof window === "undefined") return "";
-  return localStorage.getItem("campus_token") ?? "";
+  return localStorage.getItem(AUTH_TOKEN_KEY) ?? "";
+}
+
+function notifyAuthChange() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+  }
 }
 
 export function setToken(token: string) {
-  localStorage.setItem("campus_token", token);
+  if (typeof window === "undefined") return;
+  localStorage.setItem(AUTH_TOKEN_KEY, token);
+  notifyAuthChange();
 }
 
 export function clearToken() {
-  localStorage.removeItem("campus_token");
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+  notifyAuthChange();
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {

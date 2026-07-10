@@ -37,7 +37,6 @@ import org.springframework.util.StringUtils;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class OrderServiceImpl implements OrderService {
     private final OrderRecordMapper orderMapper;
     private final TradeClient tradeClient;

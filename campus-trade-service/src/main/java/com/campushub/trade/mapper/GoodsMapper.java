@@ -8,6 +8,5 @@ import org.apache.ibatis.annotations.Mapper;
  * Mapper for goods.
  */
 @Mapper
-@SuppressWarnings("unused")
 public interface GoodsMapper extends BaseMapper<Goods> {
 }

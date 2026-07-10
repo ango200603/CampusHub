@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
  * Feign client for order-service.
  */
 @FeignClient(name = "campus-order-service", path = "/orders")
-@SuppressWarnings("unused")
 public interface OrderClient {
     /**
      * Gets an order by id.

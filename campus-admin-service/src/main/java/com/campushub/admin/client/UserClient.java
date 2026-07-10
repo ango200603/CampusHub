@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
  * Feign client for user-service.
  */
 @FeignClient(name = "campus-user-service", path = "/users")
-@SuppressWarnings("unused")
 public interface UserClient {
     /**
      * Gets user detail.

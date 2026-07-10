@@ -8,6 +8,5 @@ import org.apache.ibatis.annotations.Mapper;
  * Mapper for SMS code records.
  */
 @Mapper
-@SuppressWarnings("unused")
 public interface SmsCodeMapper extends BaseMapper<SmsCode> {
 }

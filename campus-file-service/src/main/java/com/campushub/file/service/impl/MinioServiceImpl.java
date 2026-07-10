@@ -15,7 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class MinioServiceImpl implements MinioService {
     private final MinioClient minioClient;
     private final MinioProperties minioProperties;

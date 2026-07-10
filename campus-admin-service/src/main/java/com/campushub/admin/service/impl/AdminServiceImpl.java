@@ -26,7 +26,7 @@ import org.springframework.util.StringUtils;
  */
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings({"SqlNoDataSourceInspection", "SqlDialectInspection", "unused"})
+@SuppressWarnings({"SqlNoDataSourceInspection", "SqlDialectInspection"})
 public class AdminServiceImpl implements AdminService {
     private static final int SUCCESS_CODE = 0;
     private static final String COLUMN_PHONE = "phone";

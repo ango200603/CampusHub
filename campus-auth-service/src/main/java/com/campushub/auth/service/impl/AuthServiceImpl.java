@@ -31,7 +31,6 @@ import org.springframework.util.StringUtils;
  */
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class AuthServiceImpl implements AuthService {
     private final StringRedisTemplate redisTemplate;
     private final RabbitTemplate rabbitTemplate;

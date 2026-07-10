@@ -13,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class FileServiceImpl implements FileService {
     private final FileRecordService fileRecordService;
 

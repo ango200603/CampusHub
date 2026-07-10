@@ -23,7 +23,6 @@ import reactor.core.publisher.Mono;
 @Component
 @Order(-2)
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
     private final ObjectMapper objectMapper;
 

@@ -5,7 +5,7 @@ import { apiFetch } from "@/lib/api";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-type Item = { id: number; title: string; description: string; price: number; category: string; status: string };
+type Item = { id: string; title: string; description: string; price: number; category: string; status: string };
 
 export default function TradeDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -18,7 +18,7 @@ export default function TradeDetailPage() {
   }, [id]);
 
   async function createOrder() {
-    const order = await apiFetch<{ id: number }>("/orders", { method: "POST", body: JSON.stringify({ itemId: Number(id) }) });
+    const order = await apiFetch<{ id: string }>("/orders", { method: "POST", body: JSON.stringify({ itemId: id }) });
     router.push(`/orders?created=${order.id}`);
   }
 

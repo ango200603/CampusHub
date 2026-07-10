@@ -5,9 +5,8 @@ package com.campushub.common.constant;
  */
 public final class CommonConstant {
     /**
-     * Default timezone used by local development.
+     * Shared default timezone value for modules that need explicit date-time configuration.
      */
-    @SuppressWarnings("unused")
     public static final String DEFAULT_TIME_ZONE = "Asia/Shanghai";
 
     /**
@@ -41,9 +40,8 @@ public final class CommonConstant {
     public static final String ROLE_USER = "USER";
 
     /**
-     * Default admin role.
+     * Reserved default admin role used by future RBAC checks.
      */
-    @SuppressWarnings("unused")
     public static final String ROLE_ADMIN = "ADMIN";
 
     private CommonConstant() {

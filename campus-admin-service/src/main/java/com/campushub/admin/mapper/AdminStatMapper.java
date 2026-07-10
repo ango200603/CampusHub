@@ -8,6 +8,5 @@ import org.apache.ibatis.annotations.Mapper;
  * Mapper for admin stat snapshots.
  */
 @Mapper
-@SuppressWarnings("unused")
 public interface AdminStatMapper extends BaseMapper<AdminStat> {
 }

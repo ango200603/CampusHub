@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/goods")
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class GoodsController {
     private final GoodsService goodsService;
 

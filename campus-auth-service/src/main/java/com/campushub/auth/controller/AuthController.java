@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class AuthController {
     private final AuthService authService;
 

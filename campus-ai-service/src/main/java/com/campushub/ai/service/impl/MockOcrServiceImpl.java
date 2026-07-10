@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class MockOcrServiceImpl implements OcrService {
     /**
      * Extracts mock text from a file object key.

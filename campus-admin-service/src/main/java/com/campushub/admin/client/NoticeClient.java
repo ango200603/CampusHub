@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
  * Feign client for publishing notices.
  */
 @FeignClient(name = "campus-notice-service", path = "/notices")
-@SuppressWarnings("unused")
 public interface NoticeClient {
     /**
      * Publishes a notice.

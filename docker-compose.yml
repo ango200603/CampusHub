@@ -1,14 +1,58 @@
+x-backend-env: &backend-env
+  TZ: Asia/Shanghai
+  MYSQL_HOST: mysql
+  MYSQL_PORT: "3306"
+  MYSQL_DATABASE: ${MYSQL_DATABASE:-campus_hub}
+  MYSQL_USER: root
+  MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  RABBITMQ_HOST: rabbitmq
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_USER: ${RABBITMQ_USER:-guest}
+  RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+  NACOS_ADDR: nacos:8848
+  MINIO_ENDPOINT: http://minio:9000
+  MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+  MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+  MINIO_BUCKET: ${MINIO_BUCKET:-campus-files}
+  JWT_SECRET: ${JWT_SECRET:-CampusHubSecretKeyForJwtHS256NeedsAtLeast32Bytes2026}
+  JWT_EXPIRE_SECONDS: ${JWT_EXPIRE_SECONDS:-604800}
+  SENTINEL_DASHBOARD: ${SENTINEL_DASHBOARD:-localhost:8858}
+
+x-backend-build: &backend-build
+  context: .
+  dockerfile: Dockerfile.backend
+  args:
+    MAVEN_IMAGE: ${MAVEN_IMAGE:-public.ecr.aws/docker/library/maven:3.9.9-eclipse-temurin-21}
+    RUNTIME_IMAGE: ${RUNTIME_IMAGE:-public.ecr.aws/docker/library/eclipse-temurin:21-jre}
+
+x-backend-common: &backend-common
+  image: campus-hub/campus-backend:local
+  build: *backend-build
+  restart: unless-stopped
+
+x-business-depends: &business-depends
+  mysql:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+  rabbitmq:
+    condition: service_healthy
+  nacos:
+    condition: service_healthy
+
 services:
   mysql:
     image: mysql:8.0
     container_name: campus-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: campus_hub
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-campus_hub}
       TZ: Asia/Shanghai
     ports:
-      - "3306:3306"
+      - "${MYSQL_HOST_PORT:-3307}:3306"
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
@@ -16,10 +60,11 @@ services:
       - mysql_data:/var/lib/mysql
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p\"$${MYSQL_ROOT_PASSWORD}\""]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   redis:
     image: redis:7
@@ -29,6 +74,11 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -38,10 +88,16 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
 
   nacos:
     image: nacos/nacos-server:v2.4.3
@@ -60,6 +116,12 @@ services:
       - "9849:9849"
     volumes:
       - nacos_data:/home/nacos/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8848/nacos/v1/console/health/readiness | grep -q OK"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
 
   minio:
     image: minio/minio:RELEASE.2025-04-22T22-12-26Z
@@ -67,13 +129,184 @@ services:
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
       - minio_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/minio/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  campus-auth-service:
+    <<: *backend-common
+    container_name: campus-auth-service
+    environment:
+      <<: *backend-env
+      SERVICE_NAME: campus-auth-service
+    expose:
+      - "8101"
+    depends_on:
+      <<: *business-depends
+
+  campus-user-service:
+    <<: *backend-common
+    container_name: campus-user-service
+    environment:
+      <<: *backend-env
+      SERVICE_NAME: campus-user-service
+    expose:
+      - "8102"
+    depends_on:
+      <<: *business-depends
+
+  campus-file-service:
+    <<: *backend-common
+    container_name: campus-file-service
+    environment:
+      <<: *backend-env
+      SERVICE_NAME: campus-file-service
+    expose:
+      - "8103"
+    depends_on:
+      <<: *business-depends
+      minio:
+        condition: service_healthy
+
+  campus-ai-service:
+    <<: *backend-common
+    container_name: campus-ai-service
+    environment:
+      <<: *backend-env
+      SERVICE_NAME: campus-ai-service
+    expose:
+      - "8104"
+    depends_on:
+      <<: *business-depends
+      campus-file-service:
+        condition: service_started
+
+  campus-trade-service:
+    <<: *backend-common
+    container_name: campus-trade-service
+    environment:
+      <<: *backend-env
+      SERVICE_NAME: campus-trade-service
+    expose:
+      - "8105"
+    depends_on:
+      <<: *business-depends
+
+  campus-order-service:
+    <<: *backend-common
+    container_name: campus-order-service
+    environment:
+      <<: *backend-env
+      SERVICE_NAME: campus-order-service
+    expose:
+      - "8106"
+    depends_on:
+      <<: *business-depends
+      campus-trade-service:
+        condition: service_started
+      campus-notice-service:
+        condition: service_started
+
+  campus-pay-service:
+    <<: *backend-common
+    container_name: campus-pay-service
+    environment:
+      <<: *backend-env
+      SERVICE_NAME: campus-pay-service
+    expose:
+      - "8107"
+    depends_on:
+      <<: *business-depends
+      campus-order-service:
+        condition: service_started
+
+  campus-notice-service:
+    <<: *backend-common
+    container_name: campus-notice-service
+    environment:
+      <<: *backend-env
+      SERVICE_NAME: campus-notice-service
+    expose:
+      - "8108"
+    depends_on:
+      <<: *business-depends
+
+  campus-admin-service:
+    <<: *backend-common
+    container_name: campus-admin-service
+    environment:
+      <<: *backend-env
+      SERVICE_NAME: campus-admin-service
+    expose:
+      - "8109"
+    depends_on:
+      <<: *business-depends
+      campus-user-service:
+        condition: service_started
+      campus-notice-service:
+        condition: service_started
+
+  campus-gateway:
+    <<: *backend-common
+    container_name: campus-gateway
+    environment:
+      <<: *backend-env
+      SERVICE_NAME: campus-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      campus-auth-service:
+        condition: service_started
+      campus-user-service:
+        condition: service_started
+      campus-file-service:
+        condition: service_started
+      campus-ai-service:
+        condition: service_started
+      campus-trade-service:
+        condition: service_started
+      campus-order-service:
+        condition: service_started
+      campus-pay-service:
+        condition: service_started
+      campus-notice-service:
+        condition: service_started
+      campus-admin-service:
+        condition: service_started
+
+  campus-web:
+    image: campus-hub/campus-web:local
+    container_name: campus-web
+    restart: unless-stopped
+    build:
+      context: ./frontend/campus-web
+      dockerfile: Dockerfile
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-public.ecr.aws/docker/library/node:22-alpine}
+        NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:8080}
+    environment:
+      NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:8080}
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+    ports:
+      - "3000:3000"
+    depends_on:
+      campus-gateway:
+        condition: service_started
 
 volumes:
   mysql_data:

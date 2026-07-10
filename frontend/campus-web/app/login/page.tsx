@@ -12,18 +12,27 @@ export default function LoginPage() {
 
   async function sendCode() {
     setMessage("");
-    await apiFetch<void>("/auth/sms/send", { method: "POST", body: JSON.stringify({ phone }) });
-    setMessage("验证码已发送，请在 notice-service 控制台查看 mock 短信日志。");
+    try {
+      await apiFetch<void>("/auth/sms/send", { method: "POST", body: JSON.stringify({ phone }) });
+      setMessage("验证码已发送，请在 notice-service 控制台查看 mock 短信日志。");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "验证码发送失败");
+    }
   }
 
   async function login() {
     setMessage("");
-    const data = await apiFetch<{ token: string }>("/auth/login/sms", {
-      method: "POST",
-      body: JSON.stringify({ phone, code })
-    });
-    setToken(data.token);
-    router.push("/");
+    try {
+      const data = await apiFetch<{ token: string }>("/auth/login/sms", {
+        method: "POST",
+        body: JSON.stringify({ phone, code })
+      });
+      setToken(data.token);
+      router.replace("/");
+      router.refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "登录失败");
+    }
   }
 
   return (

@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/admin")
 @RequiredArgsConstructor
-@SuppressWarnings("unused")
 public class AdminController {
     private final AdminService adminService;
 
