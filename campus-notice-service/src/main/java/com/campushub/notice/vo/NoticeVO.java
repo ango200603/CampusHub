@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NoticeVO {
-    private Long id;
+    private String id;
     private String title;
     private String content;
     private Integer readStatus;
@@ -29,7 +29,7 @@ public class NoticeVO {
      */
     public static NoticeVO from(Notice notice) {
         return NoticeVO.builder()
-                .id(notice.getId())
+                .id(notice.getId() == null ? null : notice.getId().toString())
                 .title(notice.getTitle())
                 .content(notice.getContent())
                 .readStatus(notice.getReadStatus())

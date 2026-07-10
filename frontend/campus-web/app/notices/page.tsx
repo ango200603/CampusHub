@@ -4,19 +4,28 @@ import { Shell } from "@/components/Shell";
 import { apiFetch } from "@/lib/api";
 import { useEffect, useState } from "react";
 
-type Notice = { id: number; title: string; content: string; readStatus: number; createdAt: string };
+type Notice = { id: string; title: string; content: string; readStatus: number; createdAt: string };
 
 export default function NoticesPage() {
   const [items, setItems] = useState<Notice[]>([]);
   const [message, setMessage] = useState("");
+  const [readingId, setReadingId] = useState<string | null>(null);
 
   async function load() {
     setItems(await apiFetch<Notice[]>("/notices/my"));
   }
 
-  async function read(id: number) {
-    await apiFetch<void>(`/notices/${id}/read`, { method: "PUT" });
-    await load();
+  async function read(id: string) {
+    setMessage("");
+    setReadingId(id);
+    try {
+      await apiFetch<void>(`/notices/${id}/read`, { method: "PUT" });
+      await load();
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : String(e));
+    } finally {
+      setReadingId(null);
+    }
   }
 
   useEffect(() => { load().catch((e) => setMessage(e.message)); }, []);
@@ -33,7 +42,15 @@ export default function NoticesPage() {
               <span className="text-xs text-slate-500">{item.readStatus ? "已读" : "未读"}</span>
             </div>
             <p className="mt-2 text-sm text-slate-600">{item.content}</p>
-            {!item.readStatus && <button onClick={() => read(item.id)} className="mt-3 rounded-md border border-slate-300 px-3 py-2 text-sm">标记已读</button>}
+            {!item.readStatus && (
+              <button
+                onClick={() => read(item.id)}
+                disabled={readingId !== null}
+                className="mt-3 rounded-md border border-slate-300 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {readingId === item.id ? "处理中..." : "标记已读"}
+              </button>
+            )}
           </article>
         ))}
       </div>
