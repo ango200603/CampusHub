@@ -1,0 +1,62 @@
+ARG MAVEN_IMAGE=public.ecr.aws/docker/library/maven:3.9.9-eclipse-temurin-21
+ARG RUNTIME_IMAGE=public.ecr.aws/docker/library/eclipse-temurin:21-jre
+
+FROM ${MAVEN_IMAGE} AS build
+
+WORKDIR /workspace
+
+COPY pom.xml ./
+COPY campus-common/pom.xml campus-common/pom.xml
+COPY campus-gateway/pom.xml campus-gateway/pom.xml
+COPY campus-auth-service/pom.xml campus-auth-service/pom.xml
+COPY campus-user-service/pom.xml campus-user-service/pom.xml
+COPY campus-file-service/pom.xml campus-file-service/pom.xml
+COPY campus-ai-service/pom.xml campus-ai-service/pom.xml
+COPY campus-trade-service/pom.xml campus-trade-service/pom.xml
+COPY campus-order-service/pom.xml campus-order-service/pom.xml
+COPY campus-pay-service/pom.xml campus-pay-service/pom.xml
+COPY campus-notice-service/pom.xml campus-notice-service/pom.xml
+COPY campus-admin-service/pom.xml campus-admin-service/pom.xml
+
+COPY campus-common/src campus-common/src
+COPY campus-gateway/src campus-gateway/src
+COPY campus-auth-service/src campus-auth-service/src
+COPY campus-user-service/src campus-user-service/src
+COPY campus-file-service/src campus-file-service/src
+COPY campus-ai-service/src campus-ai-service/src
+COPY campus-trade-service/src campus-trade-service/src
+COPY campus-order-service/src campus-order-service/src
+COPY campus-pay-service/src campus-pay-service/src
+COPY campus-notice-service/src campus-notice-service/src
+COPY campus-admin-service/src campus-admin-service/src
+
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn -B -Dmaven.wagon.http.retryHandler.count=5 clean package -DskipTests && \
+    mkdir -p /workspace/jars && \
+    for service in \
+        campus-gateway \
+        campus-auth-service \
+        campus-user-service \
+        campus-file-service \
+        campus-ai-service \
+        campus-trade-service \
+        campus-order-service \
+        campus-pay-service \
+        campus-notice-service \
+        campus-admin-service; \
+    do \
+        cp "${service}"/target/"${service}"-*.jar "/workspace/jars/${service}.jar"; \
+    done
+
+FROM ${RUNTIME_IMAGE}
+
+ENV JAVA_OPTS="" \
+    SERVICE_NAME=campus-gateway \
+    TZ=Asia/Shanghai
+
+WORKDIR /app
+COPY --from=build /workspace/jars /app/jars
+
+EXPOSE 8080 8101 8102 8103 8104 8105 8106 8107 8108 8109
+
+ENTRYPOINT ["sh", "-c", "JAR_PATH=\"/app/jars/${SERVICE_NAME}.jar\"; test -f \"${JAR_PATH}\" || { echo \"Unknown SERVICE_NAME: ${SERVICE_NAME}\" >&2; exit 1; }; exec java ${JAVA_OPTS} -jar \"${JAR_PATH}\""]
