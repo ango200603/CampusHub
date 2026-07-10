@@ -102,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
         }
         UserPrincipal principal = jwtUtil.parseToken(authorization.substring(CommonConstant.BEARER_PREFIX.length()));
         return MeVO.builder()
-                .userId(principal.getUserId())
+                .userId(principal.getUserId() == null ? null : principal.getUserId().toString())
                 .phone(principal.getPhone())
                 .roles(principal.getRoles())
                 .build();

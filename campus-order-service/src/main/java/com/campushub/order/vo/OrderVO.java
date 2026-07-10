@@ -16,11 +16,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderVO {
-    private Long id;
+    private String id;
     private String orderNo;
-    private Long buyerId;
-    private Long sellerId;
-    private Long itemId;
+    private String buyerId;
+    private String sellerId;
+    private String itemId;
     private BigDecimal amount;
     private String orderType;
     private String status;
@@ -34,11 +34,11 @@ public class OrderVO {
      */
     public static OrderVO from(OrderRecord order) {
         return OrderVO.builder()
-                .id(order.getId())
+                .id(order.getId() == null ? null : order.getId().toString())
                 .orderNo(order.getOrderNo())
-                .buyerId(order.getBuyerId())
-                .sellerId(order.getSellerId())
-                .itemId(order.getItemId())
+                .buyerId(order.getBuyerId() == null ? null : order.getBuyerId().toString())
+                .sellerId(order.getSellerId() == null ? null : order.getSellerId().toString())
+                .itemId(order.getItemId() == null ? null : order.getItemId().toString())
                 .amount(order.getAmount())
                 .orderType(order.getOrderType())
                 .status(order.getStatus())

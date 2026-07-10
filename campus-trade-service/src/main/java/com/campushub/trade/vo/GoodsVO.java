@@ -1,8 +1,6 @@
 package com.campushub.trade.vo;
 
 import com.campushub.trade.enums.GoodsStatusEnum;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -18,10 +16,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GoodsVO {
-    @JsonSerialize(using = ToStringSerializer.class)
-    private Long id;
-    @JsonSerialize(using = ToStringSerializer.class)
-    private Long sellerId;
+    private String id;
+    private String sellerId;
     private String title;
     private String description;
     private BigDecimal price;

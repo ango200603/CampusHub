@@ -1,8 +1,6 @@
 package com.campushub.trade.vo;
 
 import com.campushub.trade.entity.TradeItem;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -18,10 +16,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TradeItemVO {
-    @JsonSerialize(using = ToStringSerializer.class)
-    private Long id;
-    @JsonSerialize(using = ToStringSerializer.class)
-    private Long sellerId;
+    private String id;
+    private String sellerId;
     private String title;
     private String description;
     private BigDecimal price;
@@ -38,8 +34,8 @@ public class TradeItemVO {
      */
     public static TradeItemVO from(TradeItem item) {
         return TradeItemVO.builder()
-                .id(item.getId())
-                .sellerId(item.getSellerId())
+                .id(item.getId() == null ? null : item.getId().toString())
+                .sellerId(item.getSellerId() == null ? null : item.getSellerId().toString())
                 .title(item.getTitle())
                 .description(item.getDescription())
                 .price(item.getPrice())

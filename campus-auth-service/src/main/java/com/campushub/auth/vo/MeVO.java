@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MeVO {
-    private Long userId;
+    private String userId;
     private String phone;
     private List<String> roles;
 }

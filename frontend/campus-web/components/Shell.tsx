@@ -17,7 +17,7 @@ const nav = [
 ];
 
 type CurrentUser = {
-  userId: number;
+  userId: string;
   phone: string;
   roles: string[];
 };

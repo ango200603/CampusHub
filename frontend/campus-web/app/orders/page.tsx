@@ -4,7 +4,15 @@ import { Shell } from "@/components/Shell";
 import { apiFetch } from "@/lib/api";
 import { useEffect, useState } from "react";
 
-type Order = { id: number; orderNo: string; itemId: number; amount: number; status: string };
+type Order = {
+  id: string;
+  orderNo: string;
+  buyerId: string;
+  sellerId: string;
+  itemId: string;
+  amount: number;
+  status: string;
+};
 type Pay = { payNo: string; orderNo: string; amount: number; status: string };
 
 export default function OrdersPage() {
