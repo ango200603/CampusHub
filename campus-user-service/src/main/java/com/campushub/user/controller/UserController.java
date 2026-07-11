@@ -4,10 +4,13 @@ import com.campushub.common.constant.CommonConstant;
 import com.campushub.common.api.Result;
 import com.campushub.user.dto.LoginUserRequest;
 import com.campushub.user.dto.PointsChangeRequest;
+import com.campushub.user.dto.UserBatchRequest;
 import com.campushub.user.dto.UserProfileDTO;
 import com.campushub.user.service.UserService;
+import com.campushub.user.vo.UserSummaryVO;
 import com.campushub.user.vo.UserVO;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,6 +45,14 @@ public class UserController {
     public Result<UserVO> updateMe(@RequestHeader(CommonConstant.HEADER_USER_ID) Long userId,
                                    @Valid @RequestBody UserProfileDTO request) {
         return Result.ok(userService.updateMe(userId, request.toUpdateProfileRequest()));
+    }
+
+    /**
+     * Returns minimal profiles for internal service enrichment.
+     */
+    @PostMapping("/internal/batch")
+    public Result<List<UserSummaryVO>> batch(@Valid @RequestBody UserBatchRequest request) {
+        return Result.ok(userService.getSummaries(request.toLongIds()));
     }
 
     /**

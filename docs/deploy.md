@@ -143,7 +143,14 @@ NEXT_PUBLIC_API_BASE=http://localhost:8080 npm run dev
 
 ## 数据初始化与重建
 
-MySQL volume 第一次创建时会执行 `sql/init.sql`。如果本地旧 volume 与当前表结构不一致，并且确认数据可以删除：
+MySQL volume 第一次创建时会执行 `sql/init.sql`。已有 volume 不会重新执行初始化脚本。需要保留现有数据时，按顺序执行 `sql/migrations` 中尚未应用的迁移。例如为订单增加商品标题快照：
+
+```bash
+docker compose exec -T mysql sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"' \
+  < sql/migrations/2026-07-11-add-order-item-title.sql
+```
+
+如果本地旧 volume 与当前表结构不一致，并且确认数据可以删除：
 
 ```bash
 docker compose down -v

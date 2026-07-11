@@ -39,7 +39,12 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   if (!(init.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
-  const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, { ...init, headers });
+  } catch {
+    throw new Error("后端服务暂时不可用，请稍后重试。");
+  }
   const json = (await res.json()) as ApiResult<T>;
   if (!res.ok || json.code !== 0) {
     throw new Error(json.message || `HTTP ${res.status}`);

@@ -8,6 +8,8 @@ import { useEffect, useState } from "react";
 type TradeItem = {
   id: string;
   sellerId: string;
+  sellerNickname: string;
+  sellerAvatarUrl?: string;
   title: string;
   description: string;
   price: number;
@@ -79,6 +81,16 @@ export default function TradeDetailPage() {
       {item && (
         <article className="rounded-lg border border-slate-200 bg-white p-4">
           <h1 className="text-xl font-bold text-ink">{item.title}</h1>
+          <div className="mt-3 flex min-h-8 items-center gap-2 text-sm text-slate-600">
+            {item.sellerAvatarUrl && (
+              <img
+                src={item.sellerAvatarUrl}
+                alt={`${item.sellerNickname || "卖家"}头像`}
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            )}
+            <span>卖家：{item.sellerNickname || "未知用户"}</span>
+          </div>
           <p className="mt-2 text-sm text-slate-600">{item.description}</p>
           <div className="mt-4 flex items-center justify-between">
             <strong className="text-2xl text-coral">¥{item.price}</strong>

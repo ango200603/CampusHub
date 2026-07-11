@@ -10,6 +10,7 @@ type Order = {
   buyerId: string;
   sellerId: string;
   itemId: string;
+  itemTitle: string;
   amount: number;
   status: string;
 };
@@ -42,11 +43,12 @@ export default function OrdersPage() {
       <div className="mt-4 space-y-3">
         {orders.map((order) => (
           <article key={order.id} className="rounded-lg border border-slate-200 bg-white p-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-ink">{order.orderNo}</h2>
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="min-w-0 font-semibold text-ink">{order.itemTitle?.trim() || "未知商品"}</h2>
               <span className="rounded bg-slate-100 px-2 py-1 text-xs">{order.status}</span>
             </div>
-            <p className="mt-2 text-sm text-slate-600">商品 #{order.itemId} · ¥{order.amount}</p>
+            <p className="mt-2 break-all text-xs text-slate-500">订单编号：{order.orderNo}</p>
+            <p className="mt-3 text-lg font-semibold text-coral">¥{order.amount}</p>
             {order.status === "UNPAID" && <button onClick={() => pay(order)} className="mt-3 w-full rounded-md bg-sun px-4 py-3 font-medium text-ink">模拟支付</button>}
           </article>
         ))}

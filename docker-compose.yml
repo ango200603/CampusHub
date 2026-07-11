@@ -117,7 +117,7 @@ services:
     volumes:
       - nacos_data:/home/nacos/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8848/nacos/v1/console/health/readiness | grep -q OK"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8848/nacos/v1/console/health/readiness | grep -q OK && nc -z localhost 9848"]
       interval: 10s
       timeout: 5s
       retries: 20
@@ -287,6 +287,12 @@ services:
         condition: service_started
       campus-admin-service:
         condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
 
   campus-web:
     image: campus-hub/campus-web:local
@@ -302,11 +308,19 @@ services:
       NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:8080}
       PORT: "3000"
       HOSTNAME: 0.0.0.0
+    command:
+      - sh
+      - -c
+      - |
+        until wget -qO- http://campus-gateway:8080/actuator/health | grep -q '"status":"UP"'; do
+          sleep 2
+        done
+        exec npm run start
     ports:
       - "3000:3000"
     depends_on:
       campus-gateway:
-        condition: service_started
+        condition: service_healthy
 
 volumes:
   mysql_data:

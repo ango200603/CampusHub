@@ -5,7 +5,17 @@ import { apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-type Item = { id: string; title: string; price: number; category: string; status: string; coverUrl?: string };
+type Item = {
+  id: string;
+  sellerId: string;
+  sellerNickname: string;
+  sellerAvatarUrl?: string;
+  title: string;
+  price: number;
+  category: string;
+  status: string;
+  coverUrl?: string;
+};
 
 export default function TradesPage() {
   const [items, setItems] = useState<Item[]>([]);
@@ -50,6 +60,7 @@ export default function TradesPage() {
               <h2 className="font-semibold text-ink">{item.title}</h2>
               <strong className="text-coral">¥{item.price}</strong>
             </div>
+            <p className="mt-2 text-sm text-slate-600">卖家：{item.sellerNickname || "未知用户"}</p>
             <p className="mt-1 text-xs text-slate-500">{item.category} · {item.status}</p>
           </Link>
         ))}

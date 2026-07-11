@@ -12,9 +12,11 @@ import com.campushub.user.entity.User;
 import com.campushub.user.enums.UserStatusEnum;
 import com.campushub.user.mapper.UserMapper;
 import com.campushub.user.service.UserService;
+import com.campushub.user.vo.UserSummaryVO;
 import com.campushub.user.vo.UserVO;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -66,6 +68,17 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(ErrorCode.NOT_FOUND, "用户不存在");
         }
         return UserVO.from(user);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<UserSummaryVO> getSummaries(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return userMapper.selectByIds(ids).stream().map(UserSummaryVO::from).toList();
     }
 
     /**

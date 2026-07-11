@@ -18,6 +18,8 @@ import lombok.NoArgsConstructor;
 public class TradeItemVO {
     private String id;
     private String sellerId;
+    private String sellerNickname;
+    private String sellerAvatarUrl;
     private String title;
     private String description;
     private BigDecimal price;

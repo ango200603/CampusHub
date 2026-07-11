@@ -33,8 +33,10 @@ public class AdminServiceImpl implements AdminService {
     private static final String COLUMN_NICKNAME = "nickname";
     private static final String COLUMN_STATUS = "status";
     private static final String COLUMN_ORDER_NO = "order_no";
+    private static final String COLUMN_ID = "id";
     private static final String COLUMN_BUYER_ID = "buyer_id";
     private static final String COLUMN_SELLER_ID = "seller_id";
+    private static final String COLUMN_ITEM_ID = "item_id";
     private static final String KEY_USER_ID = "userId";
     private static final String KEY_TITLE = "title";
     private static final String KEY_CONTENT = "content";
@@ -52,7 +54,7 @@ public class AdminServiceImpl implements AdminService {
             limit 100
             """;
     private static final String RECENT_ORDERS_SQL = """
-            select id, order_no, buyer_id, seller_id, item_id, amount, status, created_at
+            select id, order_no, buyer_id, seller_id, item_id, item_title, amount, status, created_at
             from orders
             order by created_at desc
             limit 100
@@ -106,6 +108,7 @@ public class AdminServiceImpl implements AdminService {
     public List<Map<String, Object>> orders(OrderQueryDTO query) {
         return jdbcTemplate.queryForList(RECENT_ORDERS_SQL).stream()
                 .filter(row -> matchesOrder(row, query))
+                .map(this::stringifyOrderIds)
                 .toList();
     }
 
@@ -198,6 +201,16 @@ public class AdminServiceImpl implements AdminService {
                 || equalsText(row.get(COLUMN_BUYER_ID), query.getUserId())
                 || equalsText(row.get(COLUMN_SELLER_ID), query.getUserId());
         return orderNoMatched && statusMatched && userMatched;
+    }
+
+    private Map<String, Object> stringifyOrderIds(Map<String, Object> row) {
+        Map<String, Object> result = new LinkedHashMap<>(row);
+        List.of(COLUMN_ID, COLUMN_BUYER_ID, COLUMN_SELLER_ID, COLUMN_ITEM_ID).forEach(column -> {
+            if (result.get(column) != null) {
+                result.put(column, String.valueOf(result.get(column)));
+            }
+        });
+        return result;
     }
 
     private boolean contains(Object source, String keyword) {

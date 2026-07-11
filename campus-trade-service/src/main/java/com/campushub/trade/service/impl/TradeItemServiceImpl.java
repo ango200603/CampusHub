@@ -2,9 +2,13 @@ package com.campushub.trade.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.campushub.common.api.Result;
 import com.campushub.common.constant.RedisKeyConstant;
 import com.campushub.common.exception.BusinessException;
 import com.campushub.common.exception.ErrorCode;
+import com.campushub.trade.client.UserClient;
+import com.campushub.trade.client.dto.UserBatchRequest;
+import com.campushub.trade.client.vo.UserSummaryVO;
 import com.campushub.trade.dto.CreateTradeItemRequest;
 import com.campushub.trade.dto.UpdateTradeItemRequest;
 import com.campushub.trade.entity.TradeItem;
@@ -16,7 +20,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -26,10 +34,14 @@ import org.springframework.util.StringUtils;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TradeItemServiceImpl implements TradeItemService {
+    private static final String UNKNOWN_SELLER = "未知用户";
+
     private final TradeItemMapper tradeItemMapper;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
+    private final UserClient userClient;
 
     /**
      * {@inheritDoc}
@@ -49,7 +61,9 @@ public class TradeItemServiceImpl implements TradeItemService {
         item.setUpdatedAt(now);
         tradeItemMapper.insert(item);
         redisTemplate.delete(RedisKeyConstant.TRADE_HOT_LIST);
-        return TradeItemVO.from(item);
+        TradeItemVO vo = TradeItemVO.from(item);
+        enrichSellers(List.of(vo));
+        return vo;
     }
 
     /**
@@ -66,7 +80,9 @@ public class TradeItemServiceImpl implements TradeItemService {
         if (StringUtils.hasText(keyword)) {
             query.like(TradeItem::getTitle, keyword);
         }
-        return tradeItemMapper.selectList(query).stream().map(TradeItemVO::from).toList();
+        List<TradeItemVO> items = tradeItemMapper.selectList(query).stream().map(TradeItemVO::from).toList();
+        enrichSellers(items);
+        return items;
     }
 
     /**
@@ -78,17 +94,20 @@ public class TradeItemServiceImpl implements TradeItemService {
         String cached = redisTemplate.opsForValue().get(key);
         if (cached != null) {
             try {
-                return objectMapper.readValue(cached, TradeItemVO.class);
+                TradeItemVO cachedItem = objectMapper.readValue(cached, TradeItemVO.class);
+                if (!StringUtils.hasText(cachedItem.getSellerNickname())) {
+                    enrichSellers(List.of(cachedItem));
+                    cacheDetail(key, cachedItem);
+                }
+                return cachedItem;
             } catch (Exception ignored) {
                 redisTemplate.delete(key);
             }
         }
         TradeItem item = require(id);
         TradeItemVO vo = TradeItemVO.from(item);
-        try {
-            redisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(vo), Duration.ofMinutes(10));
-        } catch (Exception ignored) {
-        }
+        enrichSellers(List.of(vo));
+        cacheDetail(key, vo);
         return vo;
     }
 
@@ -119,7 +138,9 @@ public class TradeItemServiceImpl implements TradeItemService {
         item.setUpdatedAt(LocalDateTime.now());
         tradeItemMapper.updateById(item);
         evict(id);
-        return TradeItemVO.from(item);
+        TradeItemVO vo = TradeItemVO.from(item);
+        enrichSellers(List.of(vo));
+        return vo;
     }
 
     /**
@@ -201,5 +222,51 @@ public class TradeItemServiceImpl implements TradeItemService {
     private void evict(Long id) {
         redisTemplate.delete(RedisKeyConstant.tradeItem(id));
         redisTemplate.delete(RedisKeyConstant.TRADE_HOT_LIST);
+    }
+
+    private void enrichSellers(List<TradeItemVO> items) {
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+        List<String> sellerIds = items.stream()
+                .map(TradeItemVO::getSellerId)
+                .filter(StringUtils::hasText)
+                .distinct()
+                .toList();
+        Map<String, UserSummaryVO> sellers = loadSellers(sellerIds);
+        items.forEach(item -> applySeller(item, sellers.get(item.getSellerId())));
+    }
+
+    private Map<String, UserSummaryVO> loadSellers(List<String> sellerIds) {
+        if (sellerIds.isEmpty()) {
+            return Map.of();
+        }
+        try {
+            Result<List<UserSummaryVO>> result = userClient.batch(
+                    UserBatchRequest.builder().userIds(sellerIds).build());
+            if (result == null || result.getCode() != 0 || result.getData() == null) {
+                return Map.of();
+            }
+            return result.getData().stream()
+                    .filter(user -> StringUtils.hasText(user.getId()))
+                    .collect(Collectors.toMap(UserSummaryVO::getId, Function.identity(), (left, right) -> left));
+        } catch (RuntimeException ex) {
+            log.warn("Unable to load seller summaries: {}", ex.getMessage());
+            return Map.of();
+        }
+    }
+
+    private void applySeller(TradeItemVO item, UserSummaryVO seller) {
+        item.setSellerNickname(seller != null && StringUtils.hasText(seller.getNickname())
+                ? seller.getNickname() : UNKNOWN_SELLER);
+        item.setSellerAvatarUrl(seller != null && seller.getAvatarUrl() != null ? seller.getAvatarUrl() : "");
+    }
+
+    private void cacheDetail(String key, TradeItemVO item) {
+        try {
+            redisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(item), Duration.ofMinutes(10));
+        } catch (Exception ignored) {
+            // A cache write failure must not make the product detail unavailable.
+        }
     }
 }

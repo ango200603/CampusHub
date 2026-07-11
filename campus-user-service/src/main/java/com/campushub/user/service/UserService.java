@@ -3,7 +3,9 @@ package com.campushub.user.service;
 import com.campushub.user.dto.LoginUserRequest;
 import com.campushub.user.dto.PointsChangeRequest;
 import com.campushub.user.dto.UpdateProfileRequest;
+import com.campushub.user.vo.UserSummaryVO;
 import com.campushub.user.vo.UserVO;
+import java.util.List;
 
 /**
  * User service contract.
@@ -18,6 +20,11 @@ public interface UserService {
      * Returns a user by id.
      */
     UserVO getById(Long id);
+
+    /**
+     * Returns summaries for a set of users in one query.
+     */
+    List<UserSummaryVO> getSummaries(List<Long> ids);
 
     /**
      * Updates the current user profile.

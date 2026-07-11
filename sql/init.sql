@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS orders (
   buyer_id BIGINT NOT NULL,
   seller_id BIGINT,
   item_id BIGINT,
+  item_title VARCHAR(255) NOT NULL DEFAULT '',
   amount DECIMAL(10,2),
   order_type VARCHAR(32),
   status VARCHAR(32),

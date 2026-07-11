@@ -25,6 +25,7 @@ public class Order {
     private Long buyerId;
     private Long sellerId;
     private Long itemId;
+    private String itemTitle;
     private BigDecimal amount;
     private String orderType;
     private String status;

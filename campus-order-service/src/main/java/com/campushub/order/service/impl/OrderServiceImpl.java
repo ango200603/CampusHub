@@ -63,6 +63,7 @@ public class OrderServiceImpl implements OrderService {
             order.setBuyerId(buyerId);
             order.setSellerId(item.getSellerId());
             order.setItemId(item.getId());
+            order.setItemTitle(item.getTitle());
             order.setAmount(item.getPrice());
             order.setOrderType(request.getOrderType() == null ? "TRADE_ITEM" : request.getOrderType());
             order.setStatus(OrderStatusEnum.UNPAID.name());
